@@ -1,5 +1,6 @@
 package com.orders.orders.service;
 
+import com.orders.orders.client.InventoryClient;
 import com.orders.orders.dto.OrderDetailResponseDTO;
 import com.orders.orders.dto.OrderItemDetailDTO;
 import com.orders.orders.dto.OrderRequestDTO;
@@ -8,10 +9,9 @@ import com.orders.orders.dto.OrderResponseDTO;
 import com.orders.orders.model.Order;
 import com.orders.orders.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestTemplate;
+
+import feign.FeignException;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -27,13 +27,7 @@ public class OrderService {
     private OrderRepository orderRepository;
 
     @Autowired
-    private RestTemplate restTemplate;
-
-    @Value("${inventory.service.name:INVENTORY-SERVICE}")
-    private String inventoryServiceName;
-
-    @Value("${inventory.service.product-path:/api/inventory/{productId}}")
-    private String inventoryProductPath;
+    private InventoryClient inventoryClient;
     
     public OrderResponseDTO createOrder(OrderRequestDTO requestDTO) {
         Order order = new Order();
@@ -114,11 +108,9 @@ public class OrderService {
     }
 
     private ProductDetailsDTO fetchProductDetails(String productId) {
-        String productUrl = "http://" + inventoryServiceName + inventoryProductPath;
-
         try {
-            return restTemplate.getForObject(productUrl, ProductDetailsDTO.class, productId);
-        } catch (RestClientException exception) {
+            return inventoryClient.getProductDetails(productId);
+        } catch (FeignException exception) {
             return null;
         }
     }
