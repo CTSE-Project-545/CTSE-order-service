@@ -8,7 +8,7 @@ on:
       [ main ]
     paths:
     - '**'
-    - '.github/workflows/ctseorderserviceapp-AutoDeployTrigger-55a4caab-2bf4-4cf3-a279-8bc2b74c7f2a.yml'
+    - '.github/workflows/ctseorderserviceapp-AutoDeployTrigger-5e6c6be3-5deb-41b1-9893-0543403198e6.yml'
 
   # Allow manual trigger 
   workflow_dispatch:      
@@ -34,7 +34,7 @@ jobs:
       - name: Build and push container image to registry
         uses: azure/container-apps-deploy-action@v2
         with:
-          appSourcePath: ${{ github.workspace }}/Dokerfile
+          appSourcePath: ${{ github.workspace }}
           _dockerfilePathKey_: _dockerfilePath_
           _targetLabelKey_: _targetLabel_
           registryUrl: ctseauthcontainer.azurecr.io
