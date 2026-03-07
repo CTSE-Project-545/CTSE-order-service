@@ -22,59 +22,59 @@ import java.util.stream.Collectors;
 
 @Service
 public class OrderService {
-    
+
     @Autowired
     private OrderRepository orderRepository;
 
     @Autowired
     private InventoryClient inventoryClient;
-    
+
     public OrderResponseDTO createOrder(OrderRequestDTO requestDTO) {
         Order order = new Order();
         order.setProductIdsAndQuantity(requestDTO.getProductIdsAndQuantity());
         order.setCreatedBy(requestDTO.getCreatedBy());
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
-        
+
         Order savedOrder = orderRepository.save(order);
         return new OrderResponseDTO(savedOrder);
     }
-    
+
     public List<OrderResponseDTO> getAllOrders() {
         return orderRepository.findAll()
                 .stream()
                 .map(OrderResponseDTO::new)
                 .collect(Collectors.toList());
     }
-    
+
     public OrderResponseDTO getOrderById(String id) {
         Optional<Order> order = orderRepository.findById(id);
         return order.map(OrderResponseDTO::new).orElse(null);
     }
-    
+
     public List<OrderResponseDTO> getOrdersByCreatedBy(String createdBy) {
         return orderRepository.findByCreatedBy(createdBy)
                 .stream()
                 .map(OrderResponseDTO::new)
                 .collect(Collectors.toList());
     }
-    
+
     public OrderResponseDTO updateOrder(String id, OrderRequestDTO requestDTO) {
         Optional<Order> existingOrder = orderRepository.findById(id);
-        
+
         if (existingOrder.isPresent()) {
             Order order = existingOrder.get();
             order.setProductIdsAndQuantity(requestDTO.getProductIdsAndQuantity());
             order.setCreatedBy(requestDTO.getCreatedBy());
             order.setUpdatedAt(LocalDateTime.now());
-            
+
             Order updatedOrder = orderRepository.save(order);
             return new OrderResponseDTO(updatedOrder);
         }
-        
+
         return null;
     }
-    
+
     public boolean deleteOrder(String id) {
         if (orderRepository.existsById(id)) {
             orderRepository.deleteById(id);
@@ -94,10 +94,10 @@ public class OrderService {
         List<OrderItemDetailDTO> items = order.getProductIdsAndQuantity() == null
                 ? Collections.emptyList()
                 : order.getProductIdsAndQuantity()
-                .entrySet()
-                .stream()
-                .map(this::buildOrderItemDetail)
-                .collect(Collectors.toList());
+                        .entrySet()
+                        .stream()
+                        .map(this::buildOrderItemDetail)
+                        .collect(Collectors.toList());
 
         return new OrderDetailResponseDTO(order, items);
     }
@@ -110,8 +110,9 @@ public class OrderService {
     private ProductDetailsDTO fetchProductDetails(String productId) {
         try {
             return inventoryClient.getProductDetails(productId);
-        } catch (FeignException exception) {
-            return null;
+        } catch (FeignException ex) {
+            System.out.println("Feign error: " + ex.contentUTF8());
+            throw ex;
         }
     }
 }
